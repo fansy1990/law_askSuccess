@@ -68,7 +68,7 @@ object RandomForestModelTest {
     val assembled_data =AssembleFeatureWithLabel.assemble(filtered_data)
     assembled_data.show(2)
     val scaled_data = ScaleData.scale(assembled_data)
-    scaled_data.show(2)
+    scaled_data.show(2,false)
     //
     println("scaled_data size :" + scaled_data.count())
 
@@ -83,7 +83,13 @@ object RandomForestModelTest {
     println("Test Error = " + (1.0 - accuracy))
 
     println(metrics.confusionMatrix)
-    println(metrics)
+    println("f:"+metrics.weightedFMeasure)
+    println("precision:"+metrics.weightedPrecision)
+    println("recall:"+metrics.weightedRecall)
+    println("accuracy:"+metrics.accuracy)
+
+    println("test.count:"+test.count())
+    println("test.1.count:"+test.filter(label+" = 1").count)
 
   }
 }
