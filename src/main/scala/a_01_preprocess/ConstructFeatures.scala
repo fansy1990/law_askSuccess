@@ -6,6 +6,7 @@ import org.apache.spark.sql.DataFrame
 
 import scala.collection.mutable
 
+import util.CommonUtils._
 /**
   * //@Author: fansy 
   * //@Time: 2018/9/20 13:46
@@ -16,13 +17,12 @@ import scala.collection.mutable
   * 2. 用户成功发布前的访问时间； 考虑是否可以做些时间间隔等来构造多几个特征列
   * 3. 用户成功发布前的相关网页访问次数，如：http://www.lawtime.cn/ask/ask.php
   *
+  * 目标列：
+  * 4. 如果有发布，则为1，否则为0；
+  *
   */
 object ConstructFeatures {
-  val visit_count = "visit_count"
-  val visit_duration = "visit_duration"
-  val visit_relevant_count="visit_relevant_count"
 
-  val userid = "userid"
   val timestamp_format="timestamp_format"
   val fullurl = "fullurl"
   val askSuccess_keywork = "askSuccess"
@@ -44,11 +44,11 @@ object ConstructFeatures {
     import org.apache.spark.sql.functions._
     val combine_udf = udf{( timestamp_format :String , fullurl:String) => { // 1: askSuccess_keywork; 2: relevant ; 0 : none
       if(fullurl!= null && fullurl.contains(askSuccess_keywork)){
-        timestamp_format + "_" + 1
+        timestamp_format + "_1"
       }else if (fullurl!=null && fullurl.contains(relevant_url)){
-        timestamp_format + "_" + 2
+        timestamp_format + "_2"
       }else{
-        timestamp_format + "_" + 0
+        timestamp_format + "_0"
       }
     }}
     val simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
@@ -59,10 +59,13 @@ object ConstructFeatures {
       if(hasAskSuccess){
         val sorted_data = splitted_data.sortBy(x => x._1)
         val sub_data = sorted_data.takeWhile(x => x._2 != 1)// askSuccess 前的数据
-
-        Array((simpleDateFormat.parse(sub_data.last._1).getTime -
-          simpleDateFormat.parse(sub_data.head._1).getTime)/60/1000.0,
-          sub_data.length,sub_data.filter(x => x._2 == 2).length,1)
+        if(sub_data.length<1){
+          Array(0.0,0,0,-1)
+        }else {
+          Array((simpleDateFormat.parse(sub_data.last._1).getTime -
+            simpleDateFormat.parse(sub_data.head._1).getTime) / 60 / 1000.0,
+            sub_data.length, sub_data.filter(x => x._2 == 2).length, 1)
+        }
 
       }else{
         val max_time_string = splitted_data.map(x => x._1).max
@@ -75,7 +78,8 @@ object ConstructFeatures {
         )
       }
     }}
-    data.select(col(userid),combine_udf(col(timestamp_format),col(fullurl)) as timestamp_format).groupBy(userid).agg(collect_list(col(timestamp_format)) as timestamp_format).select(col(userid), cal_udf(col(timestamp_format)) as "features")
+    val constructed_data = data.select(col(userid),combine_udf(col(timestamp_format),col(fullurl)) as timestamp_format).groupBy(userid).agg(collect_list(col(timestamp_format)) as timestamp_format).select(col(userid), cal_udf(col(timestamp_format)) as features)
+    constructed_data
   }
 
 
@@ -87,5 +91,7 @@ object ConstructFeatures {
     val features_data = getConstructFeatures(data)
 
     features_data.filter("userid = "+u1).show(1)
+
+    print(features_data.count())
   }
 }
