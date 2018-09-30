@@ -4,6 +4,7 @@ import org.apache.spark.ml.feature.StandardScaler
 import org.apache.spark.sql.DataFrame
 
 import util.CommonUtils._
+
 /**
   * //@Author: fansy 
   * //@Time: 2018/9/21 11:26
@@ -14,6 +15,16 @@ object ScaleData {
   def scale(data:DataFrame):DataFrame = {
     val scaler = new StandardScaler()
       .setInputCol(assembled_features)
+      .setOutputCol(scaled_features)
+      .setWithStd(true)
+      .setWithMean(true)
+    // 归一化后的数据
+    val scaled_data = scaler.fit(data).transform(data)
+    scaled_data
+  }
+  def scale2(data:DataFrame):DataFrame = {
+    val scaler = new StandardScaler()
+      .setInputCol("assembled2_features")
       .setOutputCol(scaled_features)
       .setWithStd(true)
       .setWithMean(true)
@@ -35,6 +46,6 @@ object ScaleData {
     assembled_data.show(2)
     val scaled_data = scale(assembled_data)
 //    println(scaled_data)
-    scaled_data.show(3,false)
+    scaled_data.show(20,false)
   }
 }

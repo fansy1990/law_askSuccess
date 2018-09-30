@@ -4,6 +4,7 @@ import java.util.Properties
 
 import org.apache.spark.sql.DataFrame
 import util.CommonUtils
+import util.CommonUtils._
 
 /**
   * //@Author: fansy 
@@ -12,9 +13,9 @@ import util.CommonUtils
   */
 object ReadDB {
 
- val url = "jdbc:mysql://localhost:3306/law_fansy?useUnicode=true&characterEncoding=utf8"
-  val user = "fansy"
-  val password = "fansy"
+ val url = "jdbc:mysql://192.168.111.75:3306/law_fansy?useUnicode=true&characterEncoding=utf8"
+  val user = "root"
+  val password = "root"
   val table = "law_fansy.gz_lawyer_data"
   val driver ="com.mysql.jdbc.Driver"
 
@@ -29,6 +30,7 @@ object ReadDB {
   def main(args: Array[String]): Unit = {
     val data = getData()
     data.show(2)
+    data.count()
   }
 
 }

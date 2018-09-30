@@ -1,10 +1,14 @@
 package a_01_preprocess
 
+import java.util.Properties
+
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
 import org.apache.spark.ml._
 import _root_.util.CommonUtils._
+import a_01_preprocess.ReadDB._
 import org.apache.spark.ml.feature.VectorAssembler
+import org.apache.spark.sql.{SQLContext, SaveMode}
 
 
 /**
@@ -31,7 +35,19 @@ object SplitFeatureWithLabel {
     de_features_label
   }
 
+def writeData(data:DataFrame,table:String)={
+  val url = "jdbc:mysql://192.168.111.75:3306/law_fansy?useUnicode=true&characterEncoding=utf8"
+  val user = "root"
+  val password = "root"
 
+  val driver ="com.mysql.jdbc.Driver"
+  val  properties = new Properties()
+  properties.put("user",user)
+  properties.put("password",password)
+  properties.put("driver",driver)
+  data.write.mode(SaveMode.Append).jdbc(url,table,properties)
+
+}
   def main(args: Array[String]): Unit = {
     val data = ReadDB.getData()
 
@@ -42,5 +58,10 @@ object SplitFeatureWithLabel {
 //    println(features_label_data)
 
 //    print(features_label_data.count())
+    println("1类数据："+features_label_data.filter(label+"=1").count())
+    println("0类数据："+features_label_data.filter(label+"=0").count())
+    writeData(features_label_data.filter(label+"=1"),"law_fansy.gz_lawyer_data_1")
+    writeData(features_label_data.filter(label+"=0"),"law_fansy.gz_lawyer_data_0")
+
   }
 }

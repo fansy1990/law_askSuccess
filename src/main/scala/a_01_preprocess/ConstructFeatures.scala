@@ -7,6 +7,7 @@ import org.apache.spark.sql.DataFrame
 import scala.collection.mutable
 
 import util.CommonUtils._
+
 /**
   * //@Author: fansy 
   * //@Time: 2018/9/20 13:46

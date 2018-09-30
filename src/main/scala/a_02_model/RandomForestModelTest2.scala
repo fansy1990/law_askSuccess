@@ -8,12 +8,11 @@ import org.apache.spark.sql.DataFrame
 import util.CommonUtils._
 
 /**
-  * //@Author: fansy 
-  * //@Time: 2018/9/21 13:46
-  * //@Email: fansy1990@foxmail.com
+  * suling
   * 随机森林 测试类
+  * 数据根据分段函数映射并标准化处理
   */
-object RandomForestModelTest {
+object RandomForestModelTest2 {
 
   def create_model(data: DataFrame) = {
     // Split the data into training and test sets (30% held out for testing).
@@ -25,7 +24,6 @@ object RandomForestModelTest {
       .setFeaturesCol(scaled_features)
       .setNumTrees(11)
       .setPredictionCol(predict_column)
-
 
     //    // Convert indexed labels back to original labels.
     //    val labelConverter = new IndexToString()
@@ -62,10 +60,10 @@ object RandomForestModelTest {
   def main(args: Array[String]): Unit = {
     val data = ReadDB.getData()
     val features_data = ConstructFeatures.getConstructFeatures(data)
-
     val features_label_data = SplitFeatureWithLabel.split(features_data)
     features_label_data.show(3)
-    val filtered_data = FilterData.filterData(UnionData.unionData(features_label_data))
+    val features_change=DataExchange.change(UnionData.unionData(features_label_data))
+    val filtered_data = FilterData.filterData(features_change)
     val assembled_data =AssembleFeatureWithLabel.assemble(filtered_data)
     assembled_data.show(2)
     val scaled_data = ScaleData.scale(assembled_data)
@@ -75,9 +73,9 @@ object RandomForestModelTest {
 
     val Array(train,test) = scaled_data.randomSplit(Array(0.8,0.2))
 
-//    val model = create_model(scaled_data)
-//    val accuracy = evaluate_model(scaled_data, model)
-//    println("Test Error = " + (1.0 - accuracy))
+    //    val model = create_model(scaled_data)
+    //    val accuracy = evaluate_model(scaled_data, model)
+    //    println("Test Error = " + (1.0 - accuracy))
 
     val model = create_model(train)
     val (accuracy,metrics) = evaluate_model(test, model)

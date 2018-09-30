@@ -3,6 +3,7 @@ package a_01_preprocess
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
 import util.CommonUtils._
+
 /**
   * //@Author: fansy 
   * //@Time: 2018/9/21 12:49
@@ -26,5 +27,15 @@ object FilterData {
       }
     }
     data.filter(label + "!=" + -1.0)
+  }
+
+  def main(args: Array[String]): Unit = {
+    val data = ReadDB.getData()
+    val features_data = ConstructFeatures.getConstructFeatures(data)
+    //    println(features_data)
+    val features_label_data = SplitFeatureWithLabel.split(features_data)
+    features_label_data.show(3)
+    val filtered_data = filterData(features_label_data)
+    filtered_data.show(3)
   }
 }
